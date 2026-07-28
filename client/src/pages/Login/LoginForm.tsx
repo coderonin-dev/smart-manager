@@ -1,6 +1,8 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
@@ -12,6 +14,11 @@ import {
 } from "../../schemas/auth";
 
 export default function LoginForm() {
+  const navigate = useNavigate();
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -20,8 +27,17 @@ export default function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
-  function onSubmit(data: LoginSchema) {
+  async function onSubmit(data: LoginSchema) {
     console.log(data);
+
+    setLoading(true);
+
+    // Simulação da API
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    setLoading(false);
+
+    navigate("/dashboard");
   }
 
   return (
@@ -30,52 +46,50 @@ export default function LoginForm() {
         onSubmit={handleSubmit(onSubmit)}
         className="space-y-5"
       >
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">
-            E-mail
-          </label>
+        <Input
+          label="E-mail"
+          icon={<Mail size={18} />}
+          type="email"
+          placeholder="voce@empresa.com"
+          error={errors.email?.message}
+          {...register("email")}
+        />
 
-          <Input
-            type="email"
-            placeholder="voce@empresa.com"
-            {...register("email")}
-          />
+        <Input
+          label="Senha"
+          icon={<Lock size={18} />}
+          endIcon={
+            showPassword ? (
+              <EyeOff
+                size={18}
+                onClick={() => setShowPassword(false)}
+              />
+            ) : (
+              <Eye
+                size={18}
+                onClick={() => setShowPassword(true)}
+              />
+            )
+          }
+          type={showPassword ? "text" : "password"}
+          placeholder="••••••••"
+          error={errors.password?.message}
+          {...register("password")}
+        />
 
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-500">
-              {errors.email.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">
-            Senha
-          </label>
-
-          <Input
-            type="password"
-            placeholder="••••••••"
-            {...register("password")}
-          />
-
-          {errors.password && (
-            <p className="mt-1 text-sm text-red-500">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        <Button type="submit">
-          Entrar
+        <Button
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? "Entrando..." : "Entrar"}
         </Button>
 
         <div className="text-center text-sm">
           <Link
             to="/forgot-password"
-            className="text-blue-600 hover:underline"
+            className="text-blue-600 transition hover:underline"
           >
-            Esqueci minha senha
+            Esqueceu sua senha?
           </Link>
         </div>
 
@@ -86,7 +100,7 @@ export default function LoginForm() {
 
           <Link
             to="/register"
-            className="ml-2 font-semibold text-blue-600 hover:underline"
+            className="ml-2 font-semibold text-blue-600 transition hover:underline"
           >
             Criar conta
           </Link>
